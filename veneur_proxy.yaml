@@ -1,0 +1,37 @@
+---
+debug: true
+enable_profiling: false
+http_address: "0.0.0.0:18127"
+
+# How often to refresh from Consul's healthy nodes
+consul_refresh_interval: "30s"
+
+# This field is deprecated - use ssf_destination_address instead!
+stats_address: "localhost:18125"
+
+# The address to which to send SSF spans and metrics - this is the
+# same format as on the veneur server's `ssf_listen_addresses`.
+ssf_destination_address: "udp://localhost:8126"
+
+### FORWARDING
+# Use a static host for forwarding
+forward_address: "http://veneur.example.com"
+# Or use a consul service for consistent forwarding.
+consul_forward_service_name: "forwardServiceName"
+
+# Maximum time that forwarding each batch of metrics can take;
+# note that forwarding to multiple global veneur servers happens in
+# parallel, so every forwarding operation is expected to complete
+# within this time.
+forward_timeout: 10s
+
+### TRACING
+# The address on which we will listen for trace data
+trace_address: "127.0.0.1:18128"
+# Use a static host to send traces to
+trace_api_address: "http://localhost:7777"
+# Ose us a consul service for sending all spans belonging to the same parent
+# trace to a consistent host
+consul_trace_service_name: "traceServiceName"
+
+sentry_dsn: ""
