@@ -15,9 +15,9 @@ RUN go install github.com/gogo/protobuf/protoc-gen-gogofaster@v1.2.1 && \
 # Install protoc based on architecture
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
-        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip"; \
+        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.5.0/protoc-3.5.0-linux-x86_64.zip"; \
     elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-aarch_64.zip"; \
+        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.5.0/protoc-3.5.0-linux-aarch_64.zip"; \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
