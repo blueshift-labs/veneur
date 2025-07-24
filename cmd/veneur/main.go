@@ -19,6 +19,7 @@ import (
 	"github.com/stripe/veneur/v14/sinks/s3"
 	"github.com/stripe/veneur/v14/sinks/signalfx"
 	"github.com/stripe/veneur/v14/sinks/splunk"
+	"github.com/stripe/veneur/v14/sinks/statsdsink"
 	"github.com/stripe/veneur/v14/sinks/xray"
 	"github.com/stripe/veneur/v14/sources/openmetrics"
 	"github.com/stripe/veneur/v14/ssf"
@@ -147,6 +148,10 @@ func main() {
 			"signalfx": {
 				Create:      signalfx.Create,
 				ParseConfig: signalfx.ParseConfig,
+			},
+			"statsd": {
+				Create:      statsdsink.Create,
+				ParseConfig: statsdsink.ParseConfig,
 			},
 		},
 		SpanSinkTypes: veneur.SpanSinkTypes{
