@@ -1,53 +1,50 @@
-# For running Veneur under Docker, you probably want either the pre-built images
-# published at https://hub.docker.com/r/stripe/veneur/
-# or the Dockerfiles in https://github.com/stripe/veneur/tree/master/public-docker-images
 FROM golang:1.17
 LABEL maintainer="The Stripe Observability Team <support@stripe.com>"
 
 ENV GOPATH=/go
 ENV GO111MODULE=on
-RUN apt-get update
-RUN apt-get install -y zip protobuf-compiler
+
+# Install dependencies
+RUN apt-get update && apt-get install -y zip curl unzip git
+
+# Install required Go tools
 RUN go install github.com/gogo/protobuf/protoc-gen-gogofaster@v1.2.1 && \
     go install golang.org/x/tools/cmd/stringer@v0.1.7 && \
     go install github.com/golang/mock/mockgen@v1.6.0
-WORKDIR /protoc
-RUN wget https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip
-RUN unzip protoc-3.1.0-linux-x86_64.zip
-RUN cp bin/protoc /usr/bin/protoc
-RUN chmod 777 /usr/bin/protoc
+
+# Install protoc based on architecture
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-aarch_64.zip"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    curl -LO "$PROTOC_URL" && \
+    unzip protoc-*.zip -d /usr/local && \
+    chmod +x /usr/local/bin/protoc && \
+    rm protoc-*.zip
 
 WORKDIR /veneur
 ADD . /veneur
 
-# If running locally, ignore any changes since
-# the last commit
+# Reset and clean repo state
 RUN git reset --hard HEAD && git status
 
-# Unlike the travis build file, we do NOT need to
-# ignore changes to protobuf-generated output
-# because we are guaranteed only one version of Go
-# used to build protoc-gen-go
+# Generate protobuf
 RUN go generate
-# Exclude vendor from gofmt checks.
+
+# Format code (excluding vendor)
 RUN mv vendor ../ && gofmt -w . && mv ../vendor .
 
-# Stage any changes caused by go generate and gofmt,
-# then confirm that there are no staged changes.
-#
-# If `go generate` or `gofmt` yielded any changes,
-# this will fail with an error message like "too many arguments"
-# or "M: binary operator expected"
-# Due to overlayfs peculiarities, running git diff-index without --cached
-# won't work, because it'll compare the mtimes (which have changed), and
-# therefore reports that the file may have changed (ie, a series of 0s)
-# See https://github.com/stripe/veneur/pull/110#discussion_r92843581
-RUN git add .
-# The output will be empty unless the build fails, in which case this
-# information is helpful in debugging
-RUN git diff --cached
-#RUN git diff-index --cached --exit-code HEAD
+# Stage any changes caused by generate/gofmt
+RUN git add . && git diff --cached
 
+# Optional: Run tests
+# RUN go test -race -v -timeout 60s -ldflags "-X github.com/stripe/veneur/v14.VERSION=$(git rev-parse HEAD) -X github.com/stripe/veneur/v14.BUILD_DATE=$(date +%s)" ./...
+
+# Build binaries
 RUN mkdir -p /build
-#RUN go test -race -v -timeout 60s -ldflags "-X github.com/stripe/veneur/v14.VERSION=$(git rev-parse HEAD) -X github.com/stripe/veneur/v14.BUILD_DATE=$(date +%s)" ./...
 CMD cp -r henson /build/ && env GOBIN=/build go install -a -v -ldflags "-X github.com/stripe/veneur/v14.VERSION=$(git rev-parse HEAD) -X github.com/stripe/veneur/v14.BUILD_DATE=$(date +%s)" ./cmd/...
+
