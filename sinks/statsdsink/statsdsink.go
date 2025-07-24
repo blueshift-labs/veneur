@@ -36,13 +36,12 @@ func (s *StatsDSink) Flush(ctx context.Context, metrics []samplers.InterMetric) 
 	for _, m := range metrics {
 		var line string
 		switch m.Type {
-		case "counter":
+		case samplers.CounterMetric:
 			line = fmt.Sprintf("%s:%f|c", m.Name, m.Value)
-		case "gauge":
+		case samplers.GaugeMetric:
 			line = fmt.Sprintf("%s:%f|g", m.Name, m.Value)
-		case "histogram", "timer":
-			line = fmt.Sprintf("%s:%f|ms", m.Name, m.Value)
 		default:
+			// Skip unsupported metric types (e.g., status, histogram)
 			continue
 		}
 		_, _ = s.conn.Write([]byte(line))
