@@ -11,6 +11,7 @@ import (
 	"github.com/stripe/veneur/v14/sinks"
 	"github.com/stripe/veneur/v14/ssf"
 	"github.com/stripe/veneur/v14/trace"
+	"github.com/stripe/veneur/v14/util"
 )
 
 type Config struct {
@@ -58,17 +59,17 @@ func (s *StatsDSink) Shutdown() {
 }
 
 func ParseConfig(name string, config interface{}) (veneur.MetricSinkConfig, error) {
-	raw, ok := config.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid config format for statsd sink")
-	}
-	addrVal, ok := raw["address"].(string)
-	if !ok {
-		return nil, fmt.Errorf("statsd sink requires 'address' as a string")
-	}
-	return &Config{
-		Address: addrVal,
-	}, nil
+  var statsdConfig Config
+  err := util.DecodeConfig(name, config, &statsdConfig)
+  if err != nil {
+    return nil, fmt.Errorf("failed to decode statsd sink config: %w", err)
+  }
+
+  if statsdConfig.Address == "" {
+    return nil, fmt.Errorf("statsd sink requires 'address' to be set")
+  }
+
+  return &statsdConfig, nil
 }
 
 func Create(
