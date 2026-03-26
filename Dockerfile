@@ -1,4 +1,4 @@
-FROM golang:1.17
+FROM golang:1.13
 LABEL maintainer="The Stripe Observability Team <support@stripe.com>"
 
 ENV GOPATH=/go
