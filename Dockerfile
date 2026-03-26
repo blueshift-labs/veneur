@@ -29,10 +29,18 @@ RUN go install github.com/gogo/protobuf/protoc-gen-gofast
 WORKDIR /go
 RUN go get -u github.com/golang/dep/cmd/dep
 RUN go get -u -v golang.org/x/tools/cmd/stringer
-RUN wget https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip
-RUN unzip protoc-3.1.0-linux-x86_64.zip
-RUN cp bin/protoc /usr/bin/protoc
-RUN chmod 777 /usr/bin/protoc
+RUN ARCH="$(uname -m)" && \
+    if [ "$ARCH" = "x86_64" ]; then \
+      PROTOC_ZIP="protoc-3.1.0-linux-x86_64.zip"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+      PROTOC_ZIP="protoc-3.1.0-linux-aarch_64.zip"; \
+    else \
+      echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    wget "https://github.com/google/protobuf/releases/download/v3.1.0/${PROTOC_ZIP}" && \
+    unzip "${PROTOC_ZIP}" && \
+    cp bin/protoc /usr/bin/protoc && \
+    chmod 755 /usr/bin/protoc
 
 WORKDIR /go/src/github.com/stripe/veneur
 ADD . /go/src/github.com/stripe/veneur
