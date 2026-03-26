@@ -1,4 +1,4 @@
-FROM golang:1.17
+FROM golang:1.21
 MAINTAINER The Stripe Observability Team <support@stripe.com>
 
 RUN mkdir -p /build
