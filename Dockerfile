@@ -7,7 +7,7 @@ ENV PATH=$GOPATH/bin:$PATH
 
 RUN apt-get update && apt-get install -y zip curl unzip git
 
-RUN GO111MODULE=on go install github.com/gogo/protobuf/protoc-gen-gogofaster@v1.2.1 && \
+RUN GO111MODULE=on go install github.com/gogo/protobuf/protoc-gen-gofast@v1.2.1 && \
     GO111MODULE=on go install golang.org/x/tools/cmd/stringer@v0.1.7 && \
     GO111MODULE=on go install github.com/golang/mock/mockgen@v1.6.0
 
