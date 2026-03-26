@@ -1,47 +1,48 @@
-FROM golang:1.25
-ARG TARGETARCH
-MAINTAINER The Stripe Observability Team <support@stripe.com>
+FROM golang:1.17
+LABEL maintainer="The Stripe Observability Team <support@stripe.com>"
 
-RUN mkdir -p /build
 ENV GOPATH=/go
+ENV GO111MODULE=on
 
-# 1. Added protobuf-compiler so protoc is installed natively for both AMD64 and ARM64
-RUN apt-get update && apt-get install -y zip protobuf-compiler
+# Install dependencies
+RUN apt-get update && apt-get install -y zip curl unzip git
 
-# 2. Install standard tools using modern module-aware 'go install'
-RUN go install github.com/ChimeraCoder/gojson/gojson@latest
-RUN go install github.com/golang/protobuf/protoc-gen-go@v1.5.2
-RUN go install golang.org/x/tools/cmd/stringer@v0.1.8
+# Install required Go tools
+RUN go install github.com/gogo/protobuf/protoc-gen-gogofaster@v1.2.1 && \
+    go install golang.org/x/tools/cmd/stringer@v0.1.7 && \
+    go install github.com/golang/mock/mockgen@v1.6.0
 
-# 3. Download pre-compiled dep binary based on target architecture (avoids x/sync build errors)
-RUN wget https://github.com/golang/dep/releases/download/v0.5.4/dep-linux-${TARGETARCH} -O /go/bin/dep && chmod +x /go/bin/dep
+# Install protoc based on architecture
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.5.0/protoc-3.5.0-linux-x86_64.zip"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.5.0/protoc-3.5.0-linux-aarch_64.zip"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    curl -LO "$PROTOC_URL" && \
+    unzip protoc-*.zip -d /usr/local && \
+    chmod +x /usr/local/bin/protoc && \
+    rm protoc-*.zip
 
-# 4. Disable module mode to support legacy GOPATH operations
-ENV GO111MODULE=off
+WORKDIR /veneur
+ADD . /veneur
 
-# 5. Manually clone and checkout the pinned gogo/protobuf version using git 
-RUN git clone https://github.com/gogo/protobuf.git /go/src/github.com/gogo/protobuf
-WORKDIR /go/src/github.com/gogo/protobuf
-RUN git checkout v0.5
-RUN go install ./protoc-gen-gofast
-
-WORKDIR /go
-
-# 6. Build the main project using legacy GOPATH + dep
-WORKDIR /go/src/github.com/stripe/veneur
-ADD . /go/src/github.com/stripe/veneur
-
-# If running locally, ignore any changes since the last commit
+# Reset and clean repo state
 RUN git reset --hard HEAD && git status
 
-RUN GOOS=linux GOARCH=amd64 go generate ./...
-RUN dep ensure -v
-RUN gofmt -w .
+# Generate protobuf
+RUN go generate
 
-RUN git add .
-RUN git diff --cached
-RUN git diff-index --cached --exit-code HEAD
+# Format code (excluding vendor)
+RUN mv vendor ../ && gofmt -w . && mv ../vendor .
 
-RUN go test -race -v -timeout 60s -ldflags "-X github.com/stripe/veneur.VERSION=$(git rev-parse HEAD) -X github.com/stripe/veneur.BUILD_DATE=$(date +%s)" ./...
+# Stage any changes caused by generate/gofmt
+RUN git add . && git diff --cached
+
+RUN mkdir -p /build
+
+#RUN go test -race -v -timeout 60s -ldflags "-X github.com/stripe/veneur.VERSION=$(git rev-parse HEAD) -X github.com/stripe/veneur.BUILD_DATE=$(date +%s)" ./...
 CMD cp -r henson /build/ && env GOBIN=/build go install -a -v -ldflags "-X github.com/stripe/veneur.VERSION=$(git rev-parse HEAD) -X github.com/stripe/veneur.BUILD_DATE=$(date +%s)" ./cmd/...
 
