@@ -32,7 +32,7 @@ RUN rm -rf /go/src/golang.org/x/tools && \
     mkdir -p /go/src/golang.org/x && \
     git clone https://github.com/golang/tools /go/src/golang.org/x/tools && \
     cd /go/src/golang.org/x/tools && \
-    git checkout 45dd101d87843da2a383dd0ce49a8c8519ce766b && \
+    git checkout release-branch.go1.9 && \
     go install golang.org/x/tools/cmd/stringer
 RUN ARCH="$(uname -m)" && \
     if [ "$ARCH" = "x86_64" ]; then \
