@@ -34,7 +34,7 @@ ADD . /go/src/github.com/stripe/veneur
 # If running locally, ignore any changes since the last commit
 RUN git reset --hard HEAD && git status
 
-RUN go generate
+RUN GOOS=linux GOARCH=amd64 go generate ./...
 RUN dep ensure -v
 RUN gofmt -w .
 
