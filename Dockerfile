@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y zip protobuf-compiler
 # 2. Install standard tools using modern module-aware 'go install'
 RUN go install github.com/ChimeraCoder/gojson/gojson@latest
 RUN go install github.com/golang/protobuf/protoc-gen-go@v1.5.2
-RUN go install golang.org/x/tools/cmd/stringer@latest
+RUN go install golang.org/x/tools/cmd/stringer@v0.1.8
 
 # 3. Download pre-compiled dep binary based on target architecture (avoids x/sync build errors)
 RUN wget https://github.com/golang/dep/releases/download/v0.5.4/dep-linux-${TARGETARCH} -O /go/bin/dep && chmod +x /go/bin/dep
