@@ -7,9 +7,9 @@ ENV PATH=$GOPATH/bin:$PATH
 
 RUN apt-get update && apt-get install -y zip curl unzip git
 
-RUN go install github.com/gogo/protobuf/protoc-gen-gogofaster@v1.2.1 && \
-    go install golang.org/x/tools/cmd/stringer@v0.1.7 && \
-    go install github.com/golang/mock/mockgen@v1.6.0
+RUN GO111MODULE=on go install github.com/gogo/protobuf/protoc-gen-gogofaster@v1.2.1 && \
+    GO111MODULE=on go install golang.org/x/tools/cmd/stringer@v0.1.7 && \
+    GO111MODULE=on go install github.com/golang/mock/mockgen@v1.6.0
 
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
