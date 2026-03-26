@@ -4,8 +4,9 @@ LABEL maintainer="The Stripe Observability Team <support@stripe.com>"
 ENV GOPATH=/go
 ENV GO111MODULE=off
 ENV PATH=$GOPATH/bin:$PATH
-
-RUN apt-get update && apt-get install -y zip curl unzip git
+RUN printf "deb http://archive.debian.org/debian buster main contrib non-free\n" > /etc/apt/sources.list && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y zip curl unzip git
 
 RUN GO111MODULE=on go install github.com/gogo/protobuf/protoc-gen-gofast@v1.2.1 && \
     GO111MODULE=on go install golang.org/x/tools/cmd/stringer@v0.1.7 && \
