@@ -36,13 +36,15 @@ RUN rm -rf /go/src/golang.org/x/tools && \
     go install golang.org/x/tools/cmd/stringer
 RUN ARCH="$(uname -m)" && \
     if [ "$ARCH" = "x86_64" ]; then \
+      PROTOC_VERSION="3.1.0"; \
       PROTOC_ZIP="protoc-3.1.0-linux-x86_64.zip"; \
     elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-      PROTOC_ZIP="protoc-3.1.0-linux-aarch_64.zip"; \
+      PROTOC_VERSION="3.6.0"; \
+      PROTOC_ZIP="protoc-3.6.0-linux-aarch_64.zip"; \
     else \
       echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
-    wget "https://github.com/google/protobuf/releases/download/v3.1.0/${PROTOC_ZIP}" && \
+    wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}" && \
     unzip "${PROTOC_ZIP}" && \
     cp bin/protoc /usr/bin/protoc && \
     chmod 755 /usr/bin/protoc
