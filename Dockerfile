@@ -6,7 +6,7 @@ ENV GOPATH=/go
 RUN apt-get update
 RUN apt-get install -y zip
 RUN go get -u -v github.com/ChimeraCoder/gojson/gojson
-RUN go get -u -v github.com/golang/protobuf/protoc-gen-go
+RUN go install github.com/golang/protobuf/protoc-gen-go@v1.5.2
 RUN go get -d -v github.com/gogo/protobuf/protoc-gen-gofast
 WORKDIR /go/src/github.com/gogo/protobuf
 RUN git fetch
