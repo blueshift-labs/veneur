@@ -6,12 +6,17 @@ ENV GOPATH=/go
 RUN printf "deb [trusted=yes] http://archive.debian.org/debian buster main contrib non-free\n" > /etc/apt/sources.list && \
     apt-get -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true update && \
     apt-get install -y --allow-unauthenticated zip curl unzip git wget
-RUN go get -d -v github.com/golang/protobuf/protoc-gen-go && \
+
+RUN rm -rf /go/src/github.com/golang/protobuf && \
+    mkdir -p /go/src/github.com/golang && \
+    git clone https://github.com/golang/protobuf /go/src/github.com/golang/protobuf && \
     cd /go/src/github.com/golang/protobuf && \
     git checkout v1.3.5 && \
     go install github.com/golang/protobuf/protoc-gen-go
 
-RUN go get -d -v github.com/gogo/protobuf/protoc-gen-gofast && \
+RUN rm -rf /go/src/github.com/gogo/protobuf && \
+    mkdir -p /go/src/github.com/gogo && \
+    git clone https://github.com/gogo/protobuf /go/src/github.com/gogo/protobuf && \
     cd /go/src/github.com/gogo/protobuf && \
     git checkout v0.5 && \
     go install github.com/gogo/protobuf/protoc-gen-gofast
