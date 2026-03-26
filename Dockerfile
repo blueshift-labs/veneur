@@ -9,7 +9,7 @@ RUN printf "deb http://archive.debian.org/debian buster main contrib non-free\n"
     apt-get install -y zip curl unzip git
 
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast && \
-    GO111MODULE=on go get golang.org/x/tools/cmd/stringer && \
+    GO111MODULE=on go get golang.org/x/tools/cmd/stringer@45dd101d8784 && \
     GO111MODULE=on go get github.com/golang/mock/mockgen && \
     GO111MODULE=on go get github.com/ChimeraCoder/gojson/gojson
 
