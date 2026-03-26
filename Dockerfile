@@ -28,7 +28,12 @@ RUN git checkout v0.5
 RUN go install github.com/gogo/protobuf/protoc-gen-gofast
 WORKDIR /go
 RUN go get -u github.com/golang/dep/cmd/dep
-RUN go get -u -v golang.org/x/tools/cmd/stringer
+RUN rm -rf /go/src/golang.org/x/tools && \
+    mkdir -p /go/src/golang.org/x && \
+    git clone https://github.com/golang/tools /go/src/golang.org/x/tools && \
+    cd /go/src/golang.org/x/tools && \
+    git checkout 45dd101d87843da2a383dd0ce49a8c8519ce766b && \
+    go install golang.org/x/tools/cmd/stringer
 RUN ARCH="$(uname -m)" && \
     if [ "$ARCH" = "x86_64" ]; then \
       PROTOC_ZIP="protoc-3.1.0-linux-x86_64.zip"; \
